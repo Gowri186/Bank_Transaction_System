@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bank Transaction System</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .container {
+            width: 60%;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px gray;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Bank Transaction System</h1>
+
+<!-- CREATE ACCOUNT -->
+<div class="container">
+    <h2>Create Account</h2>
+
+    <input id="c_name" placeholder="Name">
+    <input id="c_acc" placeholder="Account Number">
+    <input id="c_branch" placeholder="Branch">
+    <input id="c_balance" placeholder="Initial Balance">
+
+    <button onclick="createAccount()">Create Account</button>
+    <button onclick="clearCreate()">Clear</button>
+</div>
+
+<!-- TRANSACTION -->
+<div class="container">
+    <h2>Transaction</h2>
+
+    <input id="t_acc" placeholder="Account Number">
+
+    <select id="t_type">
+        <option value="deposit">Deposit</option>
+        <option value="withdrawal">Withdraw</option>
+    </select>
+
+    <input id="t_amount" placeholder="Amount">
+
+    <button onclick="makeTransaction()">Submit</button>
+    <button onclick="clearTransaction()">Clear</button>
+</div>
+
+<!-- TRANSACTION HISTORY -->
+<div class="container">
+    <h2>Transaction History</h2>
+
+    <button onclick="loadTransactions()">Load Transactions</button>
+    <button onclick="clearTable()">Clear Table</button>
+
+    <table id="txnTable">
+        <tr>
+            <th>ID</th>
+            <th>Account No</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Balance</th>
+            <th>Date</th>
+        </tr>
+    </table>
+</div>
+
+<script>
+
+/* CREATE ACCOUNT */
+function createAccount() {
+    fetch('/create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            account_no: document.getElementById('c_acc').value,
+            name: document.getElementById('c_name').value,
+            branch: document.getElementById('c_branch').value,
+            balance: document.getElementById('c_balance').value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        clearCreate();
+    });
+}
+
+
+/* TRANSACTION */
+function makeTransaction() {
+    fetch('/transaction', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            account_no: document.getElementById('t_acc').value,
+            type: document.getElementById('t_type').value,
+            amount: document.getElementById('t_amount').value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message + " | Balance: " + (data.balance || ""));
+        clearTransaction();
+    });
+}
+
+
+/* LOAD TRANSACTIONS */
+function loadTransactions() {
+    fetch('/transactions')
+    .then(res => res.json())
+    .then(data => {
+        let table = document.getElementById('txnTable');
+
+        table.innerHTML = `
+        <tr>
+            <th>ID</th>
+            <th>Account No</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Balance</th>
+            <th>Date</th>
+        </tr>`;
+
+        data.forEach(txn => {
+            table.innerHTML += `
+            <tr>
+                <td>${txn.txn_id}</td>
+                <td>${txn.account_no}</td>
+                <td>${txn.type}</td>
+                <td>${txn.amount}</td>
+                <td>${txn.balance}</td>
+                <td>${txn.datetime}</td>
+            </tr>`;
+        });
+    });
+}
+
+
+/* CLEAR CREATE FORM */
+function clearCreate() {
+    document.getElementById('c_name').value = '';
+    document.getElementById('c_acc').value = '';
+    document.getElementById('c_branch').value = '';
+    document.getElementById('c_balance').value = '';
+}
+
+/* CLEAR TRANSACTION FORM */
+function clearTransaction() {
+    document.getElementById('t_acc').value = '';
+    document.getElementById('t_amount').value = '';
+    document.getElementById('t_type').value = 'deposit';
+}
+
+/* CLEAR TABLE */
+function clearTable() {
+    let table = document.getElementById('txnTable');
+
+    table.innerHTML = `
+    <tr>
+        <th>ID</th>
+        <th>Account No</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Balance</th>
+        <th>Date</th>
+    </tr>`;
+}
+
+</script>
+
+</body>
+</html>
