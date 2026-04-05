@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bank Management System</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', Arial;
+    margin: 0;
+    background: linear-gradient(to right, #e3f2fd, #fce4ec);
+}
+
+.header {
+    text-align: center;
+    padding: 20px;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.menu {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.menu button {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    background: white;
+    cursor: pointer;
+}
+
+.section {
+    display: none;
+    justify-content: center;
+}
+
+.card {
+    background: white;
+    width: 350px;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+button.submit {
+    background: linear-gradient(to right, #007bff, #00c6ff);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button.clear {
+    background: gray;
+    color: white;
+    margin-top: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🏦 Bank Management System</div>
+
+<div class="menu">
+<button onclick="show('bank')">Bank</button>
+<button onclick="show('branch')">Branch</button>
+<button onclick="show('customer')">Customer</button>
+<button onclick="show('account')">Account</button>
+<button onclick="show('transaction')">Transaction</button>
+<button onclick="refreshAll()">🔄 Refresh</button>
+</div>
+
+<!-- BANK -->
+<div id="bank" class="section">
+<div class="card">
+<h3>Create Bank</h3>
+<input id="b_code" placeholder="Code">
+<input id="b_name" placeholder="Name">
+<input id="b_address" placeholder="Address">
+<button class="submit" onclick="createBank()">Create</button>
+<button class="clear" onclick="clearBank()">Clear</button>
+</div>
+</div>
+
+<!-- BRANCH -->
+<div id="branch" class="section">
+<div class="card">
+<h3>Create Branch</h3>
+<input id="br_id" placeholder="Branch ID">
+<input id="br_name" placeholder="Name">
+<input id="br_address" placeholder="Address">
+
+<input id="br_bank" list="bankList" placeholder="Bank Code">
+<datalist id="bankList"></datalist>
+
+<button class="submit" onclick="createBranch()">Create</button>
+<button class="clear" onclick="clearBranch()">Clear</button>
+</div>
+</div>
+
+<!-- CUSTOMER -->
+<div id="customer" class="section">
+<div class="card">
+<h3>Create Customer</h3>
+<input id="c_id" placeholder="Customer ID">
+<input id="c_name" placeholder="Name">
+<input id="c_address" placeholder="Address">
+<input id="c_phone" placeholder="Phone">
+<button class="submit" onclick="createCustomer()">Create</button>
+<button class="clear" onclick="clearCustomer()">Clear</button>
+</div>
+</div>
+
+<!-- ACCOUNT -->
+<div id="account" class="section">
+<div class="card">
+<h3>Create Account</h3>
+
+<input id="a_no" placeholder="Account Number">
+
+<input id="a_type" list="types" placeholder="Account Type">
+<datalist id="types">
+<option value="Savings">
+<option value="Current">
+<option value="Salary">
+</datalist>
+
+<input id="a_balance" placeholder="Balance">
+
+<input id="a_branch" list="branchList" placeholder="Branch ID">
+<datalist id="branchList"></datalist>
+
+<input id="a_cust" list="customerList" placeholder="Customer ID">
+<datalist id="customerList"></datalist>
+
+<button class="submit" onclick="createAccount()">Create</button>
+<button class="clear" onclick="clearAccount()">Clear</button>
+</div>
+</div>
+
+<!-- TRANSACTION -->
+<div id="transaction" class="section">
+<div class="card">
+<h3>Transaction</h3>
+
+<input id="t_acc" list="accountList" placeholder="Account No">
+<datalist id="accountList"></datalist>
+
+<select id="t_type">
+<option value="deposit">Deposit</option>
+<option value="withdrawal">Withdraw</option>
+</select>
+
+<input id="t_amount" placeholder="Amount">
+
+<button class="submit" onclick="makeTransaction()">Submit</button>
+<button class="clear" onclick="clearTransaction()">Clear</button>
+</div>
+</div>
+
+<script>
+
+/* NAVIGATION */
+function show(id){
+document.querySelectorAll('.section').forEach(s => s.style.display='none');
+document.getElementById(id).style.display='flex';
+}
+
+/* CLEAR FUNCTIONS */
+function clearBank(){ b_code.value=''; b_name.value=''; b_address.value=''; }
+function clearBranch(){ br_id.value=''; br_name.value=''; br_address.value=''; br_bank.value=''; }
+function clearCustomer(){ c_id.value=''; c_name.value=''; c_address.value=''; c_phone.value=''; }
+function clearAccount(){ a_no.value=''; a_type.value=''; a_balance.value=''; a_branch.value=''; a_cust.value=''; }
+function clearTransaction(){ t_acc.value=''; t_amount.value=''; }
+
+/* LOAD DATA */
+function loadBanks(){
+fetch('/banks').then(r=>r.json()).then(data=>{
+let list=document.getElementById('bankList'); list.innerHTML='';
+data.forEach(b=>list.innerHTML+=`<option value="${b.code}">`);
+});
+}
+
+function loadBranches(){
+fetch('/branches').then(r=>r.json()).then(data=>{
+let list=document.getElementById('branchList'); list.innerHTML='';
+data.forEach(b=>list.innerHTML+=`<option value="${b.branch_id}">`);
+});
+}
+
+function loadCustomers(){
+fetch('/customers').then(r=>r.json()).then(data=>{
+let list=document.getElementById('customerList'); list.innerHTML='';
+data.forEach(c=>list.innerHTML+=`<option value="${c.custid}">`);
+});
+}
+
+function loadAccounts(){
+fetch('/accounts').then(r=>r.json()).then(data=>{
+let list=document.getElementById('accountList'); list.innerHTML='';
+data.forEach(a=>list.innerHTML+=`<option value="${a.account_no}">`);
+});
+}
+
+function refreshAll(){
+loadBanks(); loadBranches(); loadCustomers(); loadAccounts();
+alert("Data Refreshed");
+}
+
+/* API CALLS */
+
+function createBank(){
+fetch('/bank',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({code:b_code.value,name:b_name.value,address:b_address.value})})
+.then(r=>r.json()).then(d=>alert(d.message||d.error));
+}
+
+function createBranch(){
+fetch('/branch',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({branch_id:br_id.value,name:br_name.value,address:br_address.value,bank_code:br_bank.value})})
+.then(r=>r.json()).then(d=>alert(d.message||d.error));
+}
+
+function createCustomer(){
+fetch('/customer',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({custid:c_id.value,name:c_name.value,address:c_address.value,phone:c_phone.value})})
+.then(r=>r.json()).then(d=>alert(d.message||d.error));
+}
+
+function createAccount(){
+fetch('/account',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+account_no:a_no.value,
+acc_type:a_type.value,
+balance:a_balance.value,
+branch_id:a_branch.value,
+custid:a_cust.value
+})})
+.then(r=>r.json()).then(d=>alert(d.message||d.error));
+}
+
+function makeTransaction(){
+fetch('/transaction',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+account_no:t_acc.value,
+type:t_type.value,
+amount:t_amount.value
+})})
+.then(r=>r.json()).then(d=>alert(d.message||d.error));
+}
+
+/* INITIAL LOAD */
+window.onload = () => {
+show('bank');
+refreshAll();
+};
+
+</script>
+
+</body>
+</html>
