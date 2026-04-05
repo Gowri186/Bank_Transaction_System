@@ -46,7 +46,7 @@ Bank_Transaction_System/
 ### 1. Clone the repository
 
 ```
-git clone https://github.com/
+https://github.com/Gowri186/Bank_Transaction_System.git
 cd Bank_Transaction_System
 ```
 
@@ -69,7 +69,7 @@ database="bank_db"
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ```
 CREATE DATABASE bank_db;
